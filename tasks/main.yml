@@ -1,0 +1,198 @@
+---
+- name: Install OpenJDK 17
+  apt:
+    name: openjdk-17-jdk
+    state: present
+    update_cache: yes
+
+- name: Create radixdlt user
+  user:
+    name: "{{ radixnode_user }}"
+    shell: /bin/bash
+    create_home: yes
+    home: "{{ radixnode_home }}"
+
+- name: Grant sudo permissions to radixdlt user
+  copy:
+    content: "{{ radixnode_user }} ALL=(ALL) NOPASSWD:ALL\n"
+    dest: "/etc/sudoers.d/{{ radixnode_user }}"
+    mode: "0440"
+
+- name: Detect public IP if not provided
+  uri:
+    url: https://ifconfig.me
+    return_content: yes
+  register: public_ip_result
+  when: radixnode_host_ip == ""
+
+- name: Set radixnode_host_ip from detected public IP
+  set_fact:
+    radixnode_host_ip: "{{ public_ip_result.content | trim }}"
+  when: radixnode_host_ip == ""
+
+- name: Create node directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ radixnode_user }}"
+    group: "{{ radixnode_user }}"
+  with_items:
+    - "{{ radixnode_dir }}"
+    - "{{ radixnode_secrets_dir }}"
+    - "{{ radixnode_data_dir }}"
+    - "{{ radixnode_keystore_dir }}"
+
+- name: Check if node binary is already installed
+  stat:
+    path: "{{ radixnode_dir }}/{{ radixnode_release }}/bin/core"
+  register: radixnode_binary
+
+- name: Download node binary
+  get_url:
+    url: "{{ radixnode_binary_url }}"
+    dest: /tmp/babylon-node.zip
+    force: yes
+  when: not radixnode_binary.stat.exists
+
+- name: Extract node binary
+  unarchive:
+    src: /tmp/babylon-node.zip
+    dest: "{{ radixnode_dir }}"
+    remote_src: yes
+    owner: "{{ radixnode_user }}"
+    group: "{{ radixnode_user }}"
+  when: not radixnode_binary.stat.exists
+
+- name: Rename extracted directory to match expected release path
+  shell: |
+    extracted_dir=$(ls -d {{ radixnode_dir }}/core-* 2>/dev/null | head -1)
+    if [ -n "$extracted_dir" ] && [ ! -d "{{ radixnode_dir }}/{{ radixnode_release }}" ]; then
+      mv "$extracted_dir" "{{ radixnode_dir }}/{{ radixnode_release }}"
+    fi
+  when: not radixnode_binary.stat.exists
+
+- name: Download native library
+  get_url:
+    url: "{{ radixnode_library_url }}"
+    dest: /tmp/babylon-node-lib.zip
+    force: yes
+  when: not radixnode_binary.stat.exists
+
+- name: Ensure /usr/lib/jni directory exists
+  file:
+    path: /usr/lib/jni
+    state: directory
+
+- name: Extract native library (libcorerust.so)
+  shell: |
+    unzip -o /tmp/babylon-node-lib.zip -d /tmp/babylon-node-lib
+    cp /tmp/babylon-node-lib/libcorerust.so /usr/lib/jni/
+  when: not radixnode_binary.stat.exists
+
+- name: Clean up downloaded archives
+  file:
+    path: "{{ item }}"
+    state: absent
+  with_items:
+    - /tmp/babylon-node.zip
+    - /tmp/babylon-node-lib.zip
+    - /tmp/babylon-node-lib
+  when: not radixnode_binary.stat.exists
+
+- name: Check if keystore exists on remote
+  stat:
+    path: "{{ radixnode_keystore_dir }}/{{ radixnode_keystore_file }}"
+  register: keystore_remote
+
+- name: Backup existing remote keystore before generating new one
+  copy:
+    src: "{{ radixnode_keystore_dir }}/{{ radixnode_keystore_file }}"
+    dest: "{{ radixnode_keystore_dir }}/{{ radixnode_keystore_file }}.{{ ansible_date_time.date }}-{{ ansible_date_time.time | replace(':', '') }}.bak"
+    remote_src: yes
+    owner: "{{ radixnode_user }}"
+    group: "{{ radixnode_user }}"
+  when:
+    - radixnode_keystore_create
+    - keystore_remote.stat.exists
+
+- name: Generate keystore using node keygen binary
+  shell: >
+    {{ radixnode_dir }}/{{ radixnode_release }}/bin/keygen
+    --keystore={{ radixnode_keystore_dir }}/{{ radixnode_keystore_file }}
+    --password={{ radixnode_keystore_password }}
+  args:
+    creates: "{{ radixnode_keystore_dir }}/{{ radixnode_keystore_file }}"
+  when:
+    - radixnode_keystore_create
+    - not keystore_remote.stat.exists
+
+- name: Set keystore ownership and permissions
+  file:
+    path: "{{ radixnode_keystore_dir }}/{{ radixnode_keystore_file }}"
+    owner: "{{ radixnode_user }}"
+    group: "{{ radixnode_user }}"
+    mode: "0600"
+  when: radixnode_keystore_create
+
+- name: Backup existing remote keystore before deploying from local
+  copy:
+    src: "{{ radixnode_keystore_dir }}/{{ radixnode_keystore_file }}"
+    dest: "{{ radixnode_keystore_dir }}/{{ radixnode_keystore_file }}.{{ ansible_date_time.date }}-{{ ansible_date_time.time | replace(':', '') }}.bak"
+    remote_src: yes
+    owner: "{{ radixnode_user }}"
+    group: "{{ radixnode_user }}"
+  when:
+    - radixnode_keystore_deploy
+    - keystore_remote.stat.exists
+
+- name: Deploy keystore from local to remote
+  copy:
+    src: "{{ radixnode_keystore_local_dir }}/{{ radixnode_keystore_file }}"
+    dest: "{{ radixnode_keystore_dir }}/{{ radixnode_keystore_file }}"
+    owner: "{{ radixnode_user }}"
+    group: "{{ radixnode_user }}"
+    mode: "0600"
+  when: radixnode_keystore_deploy
+  notify:
+    - Restart radixdlt-node
+
+- name: Template default.config
+  template:
+    src: default.config.j2
+    dest: "{{ radixnode_dir }}/default.config"
+    owner: "{{ radixnode_user }}"
+    group: "{{ radixnode_user }}"
+  notify:
+    - Restart radixdlt-node
+
+- name: Template environment file
+  template:
+    src: environment.j2
+    dest: "{{ radixnode_secrets_dir }}/environment"
+    owner: "{{ radixnode_user }}"
+    group: "{{ radixnode_user }}"
+    mode: "0600"
+  notify:
+    - Restart radixdlt-node
+
+- name: Install radixdlt-node systemd service
+  template:
+    src: radixdlt-node.service.j2
+    dest: /etc/systemd/system/radixdlt-node.service
+  notify:
+    - Restart radixdlt-node
+
+- name: Set ownership on data directory
+  file:
+    path: "{{ radixnode_data_dir }}"
+    state: directory
+    owner: "{{ radixnode_user }}"
+    group: "{{ radixnode_user }}"
+    recurse: yes
+
+- name: Enable and start radixdlt-node service
+  systemd:
+    enabled: true
+    name: radixdlt-node
+    state: started
+    daemon_reload: true

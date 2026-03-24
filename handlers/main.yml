@@ -1,0 +1,6 @@
+---
+- name: Restart radixdlt-node
+  service:
+    name: radixdlt-node
+    state: restarted
+    enabled: yes

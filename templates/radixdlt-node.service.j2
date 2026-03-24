@@ -1,0 +1,23 @@
+[Unit]
+Description=Radix DLT Validator
+After=local-fs.target
+After=network-online.target
+After=nss-lookup.target
+After=time-sync.target
+After=systemd-journald-dev-log.socket
+Wants=network-online.target
+
+[Service]
+EnvironmentFile={{ radixnode_secrets_dir }}/environment
+User={{ radixnode_user }}
+LimitNOFILE=65536
+LimitNPROC=65536
+LimitMEMLOCK=infinity
+WorkingDirectory={{ radixnode_dir }}
+ExecStart={{ radixnode_dir }}/{{ radixnode_release }}/bin/core
+SuccessExitStatus=143
+TimeoutStopSec=10
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

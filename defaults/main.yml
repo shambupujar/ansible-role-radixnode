@@ -1,0 +1,34 @@
+---
+# Radix node release
+radixnode_release: "v1.3.0.2"
+radixnode_binary_url: "https://github.com/radixdlt/babylon-node/releases/download/{{ radixnode_release }}/babylon-node-{{ radixnode_release }}.zip"
+radixnode_library_url: "https://github.com/radixdlt/babylon-node/releases/download/{{ radixnode_release }}/babylon-node-rust-arch-linux-x86_64-release-{{ radixnode_release }}.zip"
+
+# User
+radixnode_user: "radixdlt"
+radixnode_home: "/home/radixdlt"
+
+# Directories
+radixnode_dir: "/etc/radixdlt/node"
+radixnode_secrets_dir: "/etc/radixdlt/node/secrets"
+radixnode_data_dir: "/home/radixdlt/babylon-ledger"
+radixnode_keystore_dir: "/home/radixdlt/babylon-node-config"
+radixnode_keystore_file: "node-keystore.ks"
+radixnode_keystore_create: false
+radixnode_keystore_deploy: false
+radixnode_keystore_local_dir: "{{ playbook_dir }}/../keystore"
+
+# Network
+radixnode_network_id: 1
+radixnode_host_ip: ""
+radixnode_trusted_node: ""
+radixnode_use_proxy_protocol: "false"
+
+# Ports
+radixnode_p2p_broadcast_port: 30000
+radixnode_p2p_listen_port: 30001
+radixnode_core_api_port: "3333"
+radixnode_system_api_port: "3334"
+
+# JVM
+radixnode_java_opts: "--enable-preview -server -Xms6g -Xmx6g -XX:MaxDirectMemorySize=2048m -XX:+HeapDumpOnOutOfMemoryError -XX:+UseCompressedOops -Djavax.net.ssl.trustStore=/etc/ssl/certs/java/cacerts -Djavax.net.ssl.trustStoreType=jks -Djava.security.egd=file:/dev/urandom -DLog4jContextSelector=org.apache.logging.log4j.core.async.AsyncLoggerContextSelector"

@@ -6,9 +6,15 @@
 ntp=false
 ntp.pool=pool.ntp.org
 network.id={{ radixnode_network_id }}
+{% if radixnode_genesis_data is defined %}
+network.genesis_data={{ radixnode_genesis_data }}
+{% endif %}
+{% if radixnode_genesis_data_file is defined %}
+network.genesis_data_file={{ radixnode_genesis_data_file }}
+{% endif %}
 
 node.key.path={{ radixnode_keystore_dir }}/{{ radixnode_keystore_file }}
-node.key.create_if_missing=true
+node.key.create_if_missing={{ radixnode_node_key_create_if_missing | default('true') }}
 
 network.p2p.broadcast_port={{ radixnode_p2p_broadcast_port }}
 network.p2p.listen_port={{ radixnode_p2p_listen_port }}
@@ -18,12 +24,126 @@ network.host_ip={{ radixnode_host_ip }}
 
 log.level=debug
 
-api.port={{ radixnode_core_api_port }}
-api.transactions.enable=true
-api.sign.enable=true
-api.bind.address=0.0.0.0
-
-api.system.port={{ radixnode_system_api_port }}
-api.system.bind_address=0.0.0.0
+{% if radixnode_state_hash_tree_gc_interval_sec is defined %}
+state_hash_tree.gc.interval_sec={{ radixnode_state_hash_tree_gc_interval_sec }}
+{% endif %}
+{% if radixnode_state_hash_tree_state_version_history_length is defined %}
+state_hash_tree.state_version_history_length={{ radixnode_state_hash_tree_state_version_history_length }}
+{% endif %}
 
 db.location={{ radixnode_data_dir }}
+{% if radixnode_db_local_transaction_execution_index_enable is defined %}
+db.local_transaction_execution_index.enable={{ radixnode_db_local_transaction_execution_index_enable }}
+{% endif %}
+{% if radixnode_db_account_change_index_enable is defined %}
+db.account_change_index.enable={{ radixnode_db_account_change_index_enable }}
+{% endif %}
+{% if radixnode_db_entity_listing_indices_enable is defined %}
+db.entity_listing_indices.enable={{ radixnode_db_entity_listing_indices_enable }}
+{% endif %}
+{% if radixnode_db_historical_substate_values_enable is defined %}
+db.historical_substate_values.enable={{ radixnode_db_historical_substate_values_enable }}
+{% endif %}
+{% if radixnode_db_checkpoints_path is defined %}
+db.checkpoints_path={{ radixnode_db_checkpoints_path }}
+{% endif %}
+
+{% if radixnode_mempool_max_transaction_count is defined %}
+mempool.max_transaction_count={{ radixnode_mempool_max_transaction_count }}
+{% endif %}
+{% if radixnode_mempool_max_memory is defined %}
+mempool.max_memory={{ radixnode_mempool_max_memory }}
+{% endif %}
+{% if radixnode_mempool_relayer_interval_ms is defined %}
+mempool.relayer.interval_ms={{ radixnode_mempool_relayer_interval_ms }}
+{% endif %}
+{% if radixnode_mempool_relayer_max_peers is defined %}
+mempool.relayer.max_peers={{ radixnode_mempool_relayer_max_peers }}
+{% endif %}
+{% if radixnode_mempool_relayer_max_relayed_size is defined %}
+mempool.relayer.max_relayed_size={{ radixnode_mempool_relayer_max_relayed_size }}
+{% endif %}
+{% if radixnode_mempool_relayer_max_message_transaction_count is defined %}
+mempool.relayer.max_message_transaction_count={{ radixnode_mempool_relayer_max_message_transaction_count }}
+{% endif %}
+{% if radixnode_mempool_relayer_max_message_payload_size is defined %}
+mempool.relayer.max_message_payload_size={{ radixnode_mempool_relayer_max_message_payload_size }}
+{% endif %}
+{% if radixnode_mempool_reevaluation_interval_ms is defined %}
+mempool.reevaluation.interval_ms={{ radixnode_mempool_reevaluation_interval_ms }}
+{% endif %}
+{% if radixnode_mempool_reevaluation_max_count is defined %}
+mempool.reevaluation.max_count={{ radixnode_mempool_reevaluation_max_count }}
+{% endif %}
+
+{% if radixnode_protocol_vertex_max_transaction_count is defined %}
+protocol.vertex.max_transaction_count={{ radixnode_protocol_vertex_max_transaction_count }}
+{% endif %}
+{% if radixnode_protocol_vertex_max_total_transactions_size is defined %}
+protocol.vertex.max_total_transactions_size={{ radixnode_protocol_vertex_max_total_transactions_size }}
+{% endif %}
+{% if radixnode_protocol_vertex_max_total_execution_cost_units_consumed is defined %}
+protocol.vertex.max_total_execution_cost_units_consumed={{ radixnode_protocol_vertex_max_total_execution_cost_units_consumed }}
+{% endif %}
+{% if radixnode_protocol_vertex_max_total_finalization_cost_units_consumed is defined %}
+protocol.vertex.max_total_finalization_cost_units_consumed={{ radixnode_protocol_vertex_max_total_finalization_cost_units_consumed }}
+{% endif %}
+{% if radixnode_protocol_custom_config is defined %}
+protocol.custom_config={{ radixnode_protocol_custom_config }}
+{% endif %}
+
+api.core.port={{ radixnode_core_api_port }}
+api.core.bind_address={{ radixnode_core_api_bind_address | default('0.0.0.0') }}
+{% if radixnode_core_api_flags_enable_unbounded_endpoints is defined %}
+api.core.flags.enable_unbounded_endpoints={{ radixnode_core_api_flags_enable_unbounded_endpoints }}
+{% endif %}
+api.transactions.enable=true
+api.sign.enable=true
+
+{% if radixnode_engine_state_api_port is defined %}
+api.engine_state.port={{ radixnode_engine_state_api_port }}
+{% endif %}
+{% if radixnode_engine_state_api_bind_address is defined %}
+api.engine_state.bind_address={{ radixnode_engine_state_api_bind_address }}
+{% endif %}
+
+{% if radixnode_mesh_api_enabled is defined %}
+api.mesh.enabled={{ radixnode_mesh_api_enabled }}
+{% endif %}
+{% if radixnode_mesh_api_port is defined %}
+api.mesh.port={{ radixnode_mesh_api_port }}
+{% endif %}
+{% if radixnode_mesh_api_bind_address is defined %}
+api.mesh.bind_address={{ radixnode_mesh_api_bind_address }}
+{% endif %}
+
+api.system.port={{ radixnode_system_api_port }}
+api.system.bind_address={{ radixnode_system_api_bind_address | default('0.0.0.0') }}
+{% if radixnode_system_api_enable_db_checkpoint is defined %}
+api.system.enable_db_checkpoint={{ radixnode_system_api_enable_db_checkpoint }}
+{% endif %}
+
+{% if radixnode_prometheus_api_port is defined %}
+api.prometheus.port={{ radixnode_prometheus_api_port }}
+{% endif %}
+{% if radixnode_prometheus_api_bind_address is defined %}
+api.prometheus.bind_address={{ radixnode_prometheus_api_bind_address }}
+{% endif %}
+
+{% if radixnode_testing_forks_enable is defined %}
+testing_forks.enable={{ radixnode_testing_forks_enable }}
+{% endif %}
+{% if radixnode_testing_fork_config_name is defined %}
+testing_forks.fork_config_name={{ radixnode_testing_fork_config_name }}
+{% endif %}
+
+{% if radixnode_consensus_use_genesis_for_validator_address is defined %}
+consensus.use_genesis_for_validator_address={{ radixnode_consensus_use_genesis_for_validator_address }}
+{% endif %}
+{% if radixnode_consensus_validator_address is defined %}
+consensus.validator_address={{ radixnode_consensus_validator_address }}
+{% endif %}
+
+{% if radixnode_bft_vertex_store_max_serialized_size_bytes is defined %}
+bft.vertex_store.max_serialized_size_bytes={{ radixnode_bft_vertex_store_max_serialized_size_bytes }}
+{% endif %}

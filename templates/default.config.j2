@@ -14,12 +14,12 @@ network.genesis_data_file={{ radixnode_genesis_data_file }}
 {% endif %}
 
 node.key.path={{ radixnode_keystore_dir }}/{{ radixnode_keystore_file }}
-node.key.create_if_missing={{ radixnode_node_key_create_if_missing | default('true') }}
+node.key.create_if_missing={{ radixnode_node_key_create_if_missing | default(true) | bool | lower }}
 
 network.p2p.broadcast_port={{ radixnode_p2p_broadcast_port }}
 network.p2p.listen_port={{ radixnode_p2p_listen_port }}
 network.p2p.seed_nodes={{ radixnode_trusted_node }}
-network.p2p.use_proxy_protocol={{ radixnode_use_proxy_protocol }}
+network.p2p.use_proxy_protocol={{ radixnode_use_proxy_protocol | bool | lower }}
 network.host_ip={{ radixnode_host_ip }}
 
 log.level=debug
@@ -33,16 +33,16 @@ state_hash_tree.state_version_history_length={{ radixnode_state_hash_tree_state_
 
 db.location={{ radixnode_data_dir }}
 {% if radixnode_db_local_transaction_execution_index_enable is defined %}
-db.local_transaction_execution_index.enable={{ radixnode_db_local_transaction_execution_index_enable }}
+db.local_transaction_execution_index.enable={{ radixnode_db_local_transaction_execution_index_enable | bool | lower }}
 {% endif %}
 {% if radixnode_db_account_change_index_enable is defined %}
-db.account_change_index.enable={{ radixnode_db_account_change_index_enable }}
+db.account_change_index.enable={{ radixnode_db_account_change_index_enable | bool | lower }}
 {% endif %}
 {% if radixnode_db_entity_listing_indices_enable is defined %}
-db.entity_listing_indices.enable={{ radixnode_db_entity_listing_indices_enable }}
+db.entity_listing_indices.enable={{ radixnode_db_entity_listing_indices_enable | bool | lower }}
 {% endif %}
 {% if radixnode_db_historical_substate_values_enable is defined %}
-db.historical_substate_values.enable={{ radixnode_db_historical_substate_values_enable }}
+db.historical_substate_values.enable={{ radixnode_db_historical_substate_values_enable | bool | lower }}
 {% endif %}
 {% if radixnode_db_checkpoints_path is defined %}
 db.checkpoints_path={{ radixnode_db_checkpoints_path }}
@@ -95,7 +95,7 @@ protocol.custom_config={{ radixnode_protocol_custom_config }}
 api.core.port={{ radixnode_core_api_port }}
 api.core.bind_address={{ radixnode_core_api_bind_address | default('0.0.0.0') }}
 {% if radixnode_core_api_flags_enable_unbounded_endpoints is defined %}
-api.core.flags.enable_unbounded_endpoints={{ radixnode_core_api_flags_enable_unbounded_endpoints }}
+api.core.flags.enable_unbounded_endpoints={{ radixnode_core_api_flags_enable_unbounded_endpoints | bool | lower }}
 {% endif %}
 api.transactions.enable=true
 api.sign.enable=true
@@ -108,7 +108,7 @@ api.engine_state.bind_address={{ radixnode_engine_state_api_bind_address }}
 {% endif %}
 
 {% if radixnode_mesh_api_enabled is defined %}
-api.mesh.enabled={{ radixnode_mesh_api_enabled }}
+api.mesh.enabled={{ radixnode_mesh_api_enabled | bool | lower }}
 {% endif %}
 {% if radixnode_mesh_api_port is defined %}
 api.mesh.port={{ radixnode_mesh_api_port }}
@@ -120,7 +120,7 @@ api.mesh.bind_address={{ radixnode_mesh_api_bind_address }}
 api.system.port={{ radixnode_system_api_port }}
 api.system.bind_address={{ radixnode_system_api_bind_address | default('0.0.0.0') }}
 {% if radixnode_system_api_enable_db_checkpoint is defined %}
-api.system.enable_db_checkpoint={{ radixnode_system_api_enable_db_checkpoint }}
+api.system.enable_db_checkpoint={{ radixnode_system_api_enable_db_checkpoint | bool | lower }}
 {% endif %}
 
 {% if radixnode_prometheus_api_port is defined %}
@@ -131,14 +131,14 @@ api.prometheus.bind_address={{ radixnode_prometheus_api_bind_address }}
 {% endif %}
 
 {% if radixnode_testing_forks_enable is defined %}
-testing_forks.enable={{ radixnode_testing_forks_enable }}
+testing_forks.enable={{ radixnode_testing_forks_enable | bool | lower }}
 {% endif %}
 {% if radixnode_testing_fork_config_name is defined %}
 testing_forks.fork_config_name={{ radixnode_testing_fork_config_name }}
 {% endif %}
 
 {% if radixnode_consensus_use_genesis_for_validator_address is defined %}
-consensus.use_genesis_for_validator_address={{ radixnode_consensus_use_genesis_for_validator_address }}
+consensus.use_genesis_for_validator_address={{ radixnode_consensus_use_genesis_for_validator_address | bool | lower }}
 {% endif %}
 {% if radixnode_consensus_validator_address is defined %}
 consensus.validator_address={{ radixnode_consensus_validator_address }}
